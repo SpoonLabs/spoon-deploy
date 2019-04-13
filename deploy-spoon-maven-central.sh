@@ -2,13 +2,8 @@
 # Deploy Spoon to Maven Central
 # Run by Travis cron jobs
 #
-# Deploy versions according to the Maven convention: major.minor.patch-qualifier-number
-# - qualifier is "beta" 
-# - number is the week number in the year eg 7.3.1-beta-1 (for the first week of january)
+# Deploy a beta versions according to the Maven convention: major.minor.patch-beta-number
 #
-# The main difference with official releases is that we don't maintain a changelog in this process
-
-set -e
 
 #### GPG INIT
 # we generate a throwable GPG Key for Travis
@@ -39,19 +34,6 @@ gpg --keyserver keyserver.ubuntu.com --send-key $KEY
 ### END GPG INIT
 
 git clone https://github.com/INRIA/spoon/
-cd spoon
-
-# replace the SNAPSHOT qualifier by beta
-# we use the week number of the year as human-friendly number
-sed -i -e 's/-SNAPSHOT/-beta-'`date +%W`'/' pom.xml
-
-# adding a link to the commit
-xmlstarlet edit -L --update '/_:project/_:description' --value `git rev-parse HEAD` pom.xml
-
-DEPLOYED_VERSION=`xmlstarlet sel tr -t -v '/_:project/_:version' pom.xml`
-
-echo deploying $DEPLOYED_VERSION
-
 # MAVEN INIT
 mkdir -p ~/.m2
 cat << EOF > ~/.m2/settings.xml
@@ -70,5 +52,54 @@ cat << EOF > ~/.m2/settings.xml
 EOF
 # END MAVEN INIT
 
+cd spoon
+
+# we do a normal release at the last bump commit
+# this works the first time and will fail after
+git checkout . # clean
+LAST_BUMP_COMMIT=`git --no-pager log --format=format:%H  -L 31,31:pom.xml | head -1`
+echo LAST_BUMP_COMMIT $LAST_BUMP_COMMIT
+git checkout $LAST_BUMP_COMMIT^1 # checking out the commit just before the bump
+xmlstarlet edit -L --update '/_:project/_:description' --value `git rev-parse HEAD` pom.xml
+CURRENT_VERSION=`xmlstarlet sel -t -v '/_:project/_:version' pom.xml`
+CURRENT_VERSION_NO_SNAPSHOT=`echo $CURRENT_VERSION | sed -e 's/-SNAPSHOT//'`
+echo CURRENT_VERSION_NO_SNAPSHOT $CURRENT_VERSION_NO_SNAPSHOT
+xmlstarlet edit -L --update '/_:project/_:version' --value $CURRENT_VERSION_NO_SNAPSHOT pom.xml
 mvn -q deploy -DskipTests -Prelease -Dgpg.keyname=$KEY
+
+
+# now we release a beta version
+git checkout . # clean
+git checkout master
+
+# adding a link to the commit
+xmlstarlet edit -L --update '/_:project/_:description' --value `git rev-parse HEAD` pom.xml
+
+CURRENT_VERSION=`xmlstarlet sel -t -v '/_:project/_:version' pom.xml`
+CURRENT_VERSION_NO_SNAPSHOT=`echo $CURRENT_VERSION | sed -e 's/-SNAPSHOT//'`
+echo CURRENT_VERSION_NO_SNAPSHOT $CURRENT_VERSION_NO_SNAPSHOT
+
+curl "http://search.maven.org/solrsearch/select?q=a:spoon-core+g:fr.inria.gforge.spoon&rows=40&wt=json&core=gav" | jq -r ".response.docs | map(select(.v | match(\"sddf-beta\"))) | .[0] | .v"
+
+LAST_BETA=`curl "http://search.maven.org/solrsearch/select?q=a:spoon-core+g:fr.inria.gforge.spoon&rows=40&wt=json&core=gav" | jq -r ".response.docs | map(select(.v | match(\"$CURRENT_VERSION_NO_SNAPSHOT-beta\"))) | .[0] | .v"`
+echo $LAST_BETA
+
+LAST_BETA_NUMBER=`curl "http://search.maven.org/solrsearch/select?q=a:spoon-core+g:fr.inria.gforge.spoon&rows=40&wt=json&core=gav" | jq -r ".response.docs | map(.v) |  map(match(\"beta-(.*)\")) | map(.captures[0].string) | .[0]"`
+
+# better version, provides a default "1" is the last version if not a beta
+LAST_BETA_NUMBER=`curl "http://search.maven.org/solrsearch/select?q=a:spoon-core+g:fr.inria.gforge.spoon&rows=40&wt=json&core=gav" | jq -r ".response.docs | map(.v) | map((match(\"-beta-(.*)\") | .captures[0].string) // \"0\") | .[0]"`
+
+echo LAST_BETA_NUMBER $LAST_BETA_NUMBER
+
+NEW_BETA_NUMBER=$((LAST_BETA_NUMBER+1))
+echo NEW_BETA_NUMBER $NEW_BETA_NUMBER
+
+# we push a beta
+PUSHED_VERSION=$CURRENT_VERSION_NO_SNAPSHOT-beta-$NEW_BETA_NUMBER
+echo deploying $PUSHED_VERSION
+xmlstarlet edit -L --update '/_:project/_:version' --value $PUSHED_VERSION pom.xml
+mvn -q deploy -DskipTests -Prelease -Dgpg.keyname=$KEY
+
+
+
 
