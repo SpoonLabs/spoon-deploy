@@ -6,32 +6,8 @@
 #
 
 #### GPG INIT
-# we generate a throwable GPG Key for Travis
-# http://affy.blogspot.com/2014/04/how-to-generate-pgp-key-on-headless.html
-umask 0277
-# %Key-Length: 1024
-# %Subkey-Type: ELG-E
-# %Subkey-Length: 1024
-cat << EOF > /tmp/$USER-gpg-genkey.conf
-%echo Generating a package signing key
-Key-Type: RSA
-Key-Length: 2048
-Name-Real:  `hostname --fqdn`
-Name-Email: $USER@`hostname --fqdn`
-Expire-Date: 0
-%commit
-%echo Done
-EOF
-umask 0002
-(find / -xdev -type f -exec sha256sum {} \;>/dev/null \; 2>&1) &
-export ENTROPY=$!
-gpg --batch --gen-key /tmp/$USER-gpg-genkey.conf 
-ps -ef | grep find | awk '{ print $2 }' | grep ${ENTROPY} && kill ${ENTROPY}
-rm -f /tmp/$USER-gpg-genkey.conf
+gpg --import spoonbot.gpgkey
 KEY=`gpg --list-keys --with-colons | grep pub | cut -f5 -d: | tail -1`
-# Maven Central asks whether the key exists in one authoritative servers
-gpg --keyserver keyserver.ubuntu.com --send-key $KEY
-sleep 1m
 ### END GPG INIT
 
 git clone https://github.com/INRIA/spoon/
@@ -85,10 +61,8 @@ curl "http://search.maven.org/solrsearch/select?q=a:spoon-core+g:fr.inria.gforge
 LAST_BETA=`curl "http://search.maven.org/solrsearch/select?q=a:spoon-core+g:fr.inria.gforge.spoon&rows=40&wt=json&core=gav" | jq -r ".response.docs | map(select(.v | match(\"$CURRENT_VERSION_NO_SNAPSHOT-beta\"))) | .[0] | .v"`
 echo $LAST_BETA
 
-LAST_BETA_NUMBER=`curl "http://search.maven.org/solrsearch/select?q=a:spoon-core+g:fr.inria.gforge.spoon&rows=40&wt=json&core=gav" | jq -r ".response.docs | map(.v) |  map(match(\"beta-(.*)\")) | map(.captures[0].string) | .[0]"`
-
 # better version, provides a default "1" is the last version if not a beta
-LAST_BETA_NUMBER=`curl "http://search.maven.org/solrsearch/select?q=a:spoon-core+g:fr.inria.gforge.spoon&rows=40&wt=json&core=gav" | jq -r ".response.docs | map(.v) | map((match(\"-beta-(.*)\") | .captures[0].string) // \"0\") | .[0]"`
+LAST_BETA_NUMBER=`curl "http://search.maven.org/solrsearch/select?q=a:spoon-core+g:fr.inria.gforge.spoon&rows=40&wt=json&core=gav" | jq -r ".response.docs | map(.v) | map((match(\"$CURRENT_VERSION_NO_SNAPSHOT-beta-(.*)\") | .captures[0].string) // \"0\") | .[0]"`
 
 echo LAST_BETA_NUMBER $LAST_BETA_NUMBER
 
