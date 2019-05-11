@@ -7,8 +7,6 @@
 
 #### GPG INIT
 gpg --fast-import spoonbot.gpgkey
-ls -lrt ~/.gnupg
-echo 'no-tty' >> ~/.gnupg/gpg.conf
 KEY=`gpg --list-keys --with-colons | grep pub | cut -f5 -d: | tail -1`
 ### END GPG INIT
 
