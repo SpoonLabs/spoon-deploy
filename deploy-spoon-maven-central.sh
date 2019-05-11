@@ -31,6 +31,7 @@ rm -f /tmp/$USER-gpg-genkey.conf
 KEY=`gpg --list-keys --with-colons | grep pub | cut -f5 -d: | tail -1`
 # Maven Central asks whether the key exists in one authoritative servers
 gpg --keyserver keyserver.ubuntu.com --send-key $KEY
+sleep 1m
 ### END GPG INIT
 
 git clone https://github.com/INRIA/spoon/
