@@ -42,7 +42,7 @@ CURRENT_VERSION=`xmlstarlet sel -t -v '/_:project/_:version' pom.xml`
 CURRENT_VERSION_NO_SNAPSHOT=`echo $CURRENT_VERSION | sed -e 's/-SNAPSHOT//'`
 echo CURRENT_VERSION_NO_SNAPSHOT $CURRENT_VERSION_NO_SNAPSHOT
 xmlstarlet edit -L --update '/_:project/_:version' --value $CURRENT_VERSION_NO_SNAPSHOT pom.xml
-mvn -q deploy -DskipTests -Prelease -Dgpg.keyname=$KEY
+mvn -q clean deploy -DskipTests -Prelease -Dgpg.keyname=$KEY
 
 
 # now we release a beta version
@@ -73,7 +73,7 @@ echo NEW_BETA_NUMBER $NEW_BETA_NUMBER
 PUSHED_VERSION=$CURRENT_VERSION_NO_SNAPSHOT-beta-$NEW_BETA_NUMBER
 echo deploying $PUSHED_VERSION
 xmlstarlet edit -L --update '/_:project/_:version' --value $PUSHED_VERSION pom.xml
-mvn -q deploy -DskipTests -Prelease -Dgpg.keyname=$KEY
+mvn -q clean deploy -DskipTests -Prelease -Dgpg.keyname=$KEY
 
 
 
