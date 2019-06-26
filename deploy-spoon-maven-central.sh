@@ -31,6 +31,11 @@ EOF
 
 cd spoon
 
+# quickfix
+cd spoon-pom
+xmlstarlet ed -L -d '/_:project/_:parent' pom.xml
+cd ..
+
 # we do a normal release at the last bump commit
 # this works the first time and will fail after
 git checkout . # clean
@@ -43,7 +48,12 @@ CURRENT_VERSION_NO_SNAPSHOT=`echo $CURRENT_VERSION | sed -e 's/-SNAPSHOT//'`
 echo CURRENT_VERSION_NO_SNAPSHOT $CURRENT_VERSION_NO_SNAPSHOT
 xmlstarlet edit -L --update '/_:project/_:version' --value $CURRENT_VERSION_NO_SNAPSHOT pom.xml
 mvn -q clean deploy -DskipTests -Prelease -Dgpg.keyname=$KEY
+if [ $? -eq 0 ]; then
+    git tag spoon-core-$CURRENT_VERSION_NO_SNAPSHOT
+    git push origin
 
+    # TODO create github release
+fi
 
 # now we release a beta version
 git checkout . # clean
@@ -63,7 +73,6 @@ echo $LAST_BETA
 
 # better version, provides a default "1" is the last version if not a beta
 LAST_BETA_NUMBER=`curl "http://search.maven.org/solrsearch/select?q=a:spoon-core+g:fr.inria.gforge.spoon&rows=40&wt=json&core=gav" | jq -r ".response.docs | map(.v) | map((match(\"$CURRENT_VERSION_NO_SNAPSHOT-beta-(.*)\") | .captures[0].string) // \"0\") | .[0]"`
-
 echo LAST_BETA_NUMBER $LAST_BETA_NUMBER
 
 NEW_BETA_NUMBER=$((LAST_BETA_NUMBER+1))
