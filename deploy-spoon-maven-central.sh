@@ -47,7 +47,6 @@ cd ..
 }
 
 
-quick_fix_pom
 
 # we do a normal release at the last bump commit
 # this works the first time and will fail after
@@ -55,6 +54,7 @@ git reset --hard # clean
 LAST_BUMP_COMMIT=`git --no-pager log --format=format:%H  -L 31,31:pom.xml | head -1`
 echo LAST_BUMP_COMMIT $LAST_BUMP_COMMIT
 git checkout $LAST_BUMP_COMMIT^1 # checking out the commit just before the bump
+quick_fix_pom
 xmlstarlet edit -L --update '/_:project/_:description' --value `git rev-parse HEAD` pom.xml
 CURRENT_VERSION=`xmlstarlet sel -t -v '/_:project/_:version' pom.xml`
 CURRENT_VERSION_NO_SNAPSHOT=`echo $CURRENT_VERSION | sed -e 's/-SNAPSHOT//'`
