@@ -63,6 +63,7 @@ xmlstarlet edit -L --update '/_:project/_:version' --value $CURRENT_VERSION_NO_S
 mvn -q clean deploy -DskipTests -Prelease -Dgpg.keyname=$KEY -DadditionalJOption=-Xdoclint:none
 if [ $? -eq 0 ]; then
     echo pushing tag on github
+    git checkout -b $CURRENT_VERSION_NO_SNAPSHOT
     git tag spoon-core-$CURRENT_VERSION_NO_SNAPSHOT
     git push origin
 
