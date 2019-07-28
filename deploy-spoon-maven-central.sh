@@ -31,14 +31,27 @@ EOF
 
 cd spoon
 
+function quick_fix_pom() {
 # quickfix
 cd spoon-pom
-xmlstarlet ed -L -d '/_:project/_:parent' pom.xml
+
+# not required anymore, fixed on master
+# xmlstarlet ed -L -d '/_:project/_:parent' pom.xml
+
+# see https://github.com/joel-costigliola/assertj-core/issues/1403#issuecomment-500100254
+JAVADOC_PLUGIN="/_:project/_:profiles/_:profile[./_:id='release']/_:build/_:plugins/_:plugin[./_:artifactId='maven-javadoc-plugin']"
+xmlstarlet sel -t -v $JAVADOC_PLUGIN  pom.xml
+xmlstarlet ed -L -s $JAVADOC_PLUGIN --type elem -n configuration pom.xml
+xmlstarlet ed -L -s $JAVADOC_PLUGIN/_:configuration --type elem -n source -v 1.8 pom.xml
 cd ..
+}
+
+
+quick_fix_pom
 
 # we do a normal release at the last bump commit
 # this works the first time and will fail after
-git checkout . # clean
+git reset --hard # clean
 LAST_BUMP_COMMIT=`git --no-pager log --format=format:%H  -L 31,31:pom.xml | head -1`
 echo LAST_BUMP_COMMIT $LAST_BUMP_COMMIT
 git checkout $LAST_BUMP_COMMIT^1 # checking out the commit just before the bump
@@ -49,6 +62,7 @@ echo CURRENT_VERSION_NO_SNAPSHOT $CURRENT_VERSION_NO_SNAPSHOT
 xmlstarlet edit -L --update '/_:project/_:version' --value $CURRENT_VERSION_NO_SNAPSHOT pom.xml
 mvn -q clean deploy -DskipTests -Prelease -Dgpg.keyname=$KEY -DadditionalJOption=-Xdoclint:none
 if [ $? -eq 0 ]; then
+    echo pushing tag on github
     git tag spoon-core-$CURRENT_VERSION_NO_SNAPSHOT
     git push origin
 
@@ -56,8 +70,10 @@ if [ $? -eq 0 ]; then
 fi
 
 # now we release a beta version
-git checkout . # clean
+git reset --hard # clean
 git checkout master
+quick_fix_pom
+
 
 # adding a link to the commit
 xmlstarlet edit -L --update '/_:project/_:description' --value `git rev-parse HEAD` pom.xml
