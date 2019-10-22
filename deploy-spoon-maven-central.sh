@@ -51,7 +51,7 @@ cd ..
 # we do a normal release at the last bump commit
 # this works the first time and will fail after
 git reset --hard # clean
-LAST_BUMP_COMMIT=`git --no-pager log --format=format:%H  -L 31,31:pom.xml | head -1`
+LAST_BUMP_COMMIT=`git --no-pager log --format=format:%H  -L 21,21:pom.xml | head -1`
 echo LAST_BUMP_COMMIT $LAST_BUMP_COMMIT
 git checkout $LAST_BUMP_COMMIT^1 # checking out the commit just before the bump
 quick_fix_pom
