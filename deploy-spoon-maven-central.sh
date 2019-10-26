@@ -41,7 +41,7 @@ cd spoon-pom
 # see https://github.com/joel-costigliola/assertj-core/issues/1403#issuecomment-500100254
 JAVADOC_PLUGIN="/_:project/_:profiles/_:profile[./_:id='release']/_:build/_:plugins/_:plugin[./_:artifactId='maven-javadoc-plugin']"
 xmlstarlet sel -t -v $JAVADOC_PLUGIN  pom.xml
-xmlstarlet ed -L -s $JAVADOC_PLUGIN --type elem -n configuration pom.xml
+# xmlstarlet ed -L -s $JAVADOC_PLUGIN --type elem -n configuration pom.xml
 xmlstarlet ed -L -s $JAVADOC_PLUGIN/_:configuration --type elem -n source -v 1.8 pom.xml
 cd ..
 }
