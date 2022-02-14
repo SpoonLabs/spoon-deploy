@@ -10,6 +10,7 @@ sudo apt-get install -y xmlstarlet
 
 # Fetch SpoonBot GPG key
 gpg --batch --fast-import --passphrase="$SPOONBOT_PASSPHRASE" spoonbot.gpg
+KEY=`gpg --list-keys --with-colons | grep pub | cut -f5 -d: | tail -1`
 
 git clone https://github.com/INRIA/spoon/
 # MAVEN INIT
@@ -50,7 +51,6 @@ cd ..
 # Prevent error: "gpg: signing failed: Inappropriate ioctl for device"
 export GPG_TTY=$(tty)
 
-
 # we do a normal release at the last bump commit
 # this works the first time and will fail after
 git reset --hard # clean
@@ -63,7 +63,7 @@ CURRENT_VERSION=`xmlstarlet sel -t -v '/_:project/_:version' pom.xml`
 CURRENT_VERSION_NO_SNAPSHOT=`echo $CURRENT_VERSION | sed -e 's/-SNAPSHOT//'`
 echo CURRENT_VERSION_NO_SNAPSHOT $CURRENT_VERSION_NO_SNAPSHOT
 xmlstarlet edit -L --update '/_:project/_:version' --value $CURRENT_VERSION_NO_SNAPSHOT pom.xml
-mvn -q clean deploy -DskipTests -Prelease -DadditionalJOption=-Xdoclint:none
+mvn -q clean deploy -DskipTests -Prelease -Dgpg.keyname=$KEY -DadditionalJOption=-Xdoclint:none
 if [ $? -eq 0 ]; then
     echo pushing tag on github
     git checkout -b $CURRENT_VERSION_NO_SNAPSHOT
@@ -97,4 +97,4 @@ echo NEW_BETA_NUMBER $NEW_BETA_NUMBER
 PUSHED_VERSION=$CURRENT_VERSION_NO_SNAPSHOT-beta-$NEW_BETA_NUMBER
 echo deploying $PUSHED_VERSION
 xmlstarlet edit -L --update '/_:project/_:version' --value $PUSHED_VERSION pom.xml
-mvn -q clean deploy -DskipTests -Prelease -DadditionalJOption=-Xdoclint:none
+mvn -q clean deploy -DskipTests -Prelease -Dgpg.keyname=$KEY -DadditionalJOption=-Xdoclint:none
