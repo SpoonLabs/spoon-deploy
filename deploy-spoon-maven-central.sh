@@ -9,7 +9,7 @@
 sudo apt-get install -y xmlstarlet
 
 # Fetch SpoonBot GPG key
-gpg --batch --fast-import --passphrase="$SPOONBOT_PASSPHRASE" spoonbot.gpg
+gpg --batch --pinentry-mode=loopback --fast-import --passphrase="$SPOONBOT_PASSPHRASE" spoonbot.gpg
 KEY=`gpg --list-keys --with-colons | grep pub | cut -f5 -d: | tail -1`
 
 git clone https://github.com/INRIA/spoon/
