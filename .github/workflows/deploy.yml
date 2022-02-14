@@ -2,8 +2,8 @@
 
 name: Deploy beta version
 on:
-  schedule:
-    - cron: 0 0 * * 6 # Every Saturday at 0000 UTC
+  push:
+      branches: [master]
 
 jobs:
   deploy:
