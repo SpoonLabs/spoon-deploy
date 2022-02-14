@@ -84,13 +84,8 @@ CURRENT_VERSION=`xmlstarlet sel -t -v '/_:project/_:version' pom.xml`
 CURRENT_VERSION_NO_SNAPSHOT=`echo $CURRENT_VERSION | sed -e 's/-SNAPSHOT//'`
 echo CURRENT_VERSION_NO_SNAPSHOT $CURRENT_VERSION_NO_SNAPSHOT
 
-curl "http://search.maven.org/solrsearch/select?q=a:spoon-core+g:fr.inria.gforge.spoon&rows=40&wt=json&core=gav" | jq -r ".response.docs | map(select(.v | match(\"sddf-beta\"))) | .[0] | .v"
-
-LAST_BETA=`curl "http://search.maven.org/solrsearch/select?q=a:spoon-core+g:fr.inria.gforge.spoon&rows=40&wt=json&core=gav" | jq -r ".response.docs | map(select(.v | match(\"$CURRENT_VERSION_NO_SNAPSHOT-beta\"))) | .[0] | .v"`
-echo $LAST_BETA
-
-# better version, provides a default "1" is the last version if not a beta
-LAST_BETA_NUMBER=`curl "http://search.maven.org/solrsearch/select?q=a:spoon-core+g:fr.inria.gforge.spoon&rows=40&wt=json&core=gav" | jq -r ".response.docs | map(.v) | map((match(\"$CURRENT_VERSION_NO_SNAPSHOT-beta-(.*)\") | .captures[0].string) // \"0\") | .[0]"`
+# provides a default "1" is the last version if not a beta
+LAST_BETA_NUMBER=`curl -L "http://search.maven.org/solrsearch/select?q=a:spoon-core+g:fr.inria.gforge.spoon&rows=40&wt=json&core=gav" | jq -r ".response.docs | map(.v) | map((match(\"$CURRENT_VERSION_NO_SNAPSHOT-beta-(.*)\") | .captures[0].string) // \"0\") | .[0]"`
 echo LAST_BETA_NUMBER $LAST_BETA_NUMBER
 
 NEW_BETA_NUMBER=$((LAST_BETA_NUMBER+1))
@@ -101,7 +96,3 @@ PUSHED_VERSION=$CURRENT_VERSION_NO_SNAPSHOT-beta-$NEW_BETA_NUMBER
 echo deploying $PUSHED_VERSION
 xmlstarlet edit -L --update '/_:project/_:version' --value $PUSHED_VERSION pom.xml
 mvn -q clean deploy -DskipTests -Prelease -DadditionalJOption=-Xdoclint:none
-
-
-
-
