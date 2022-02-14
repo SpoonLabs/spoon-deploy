@@ -47,6 +47,8 @@ xmlstarlet ed -L -s $JAVADOC_PLUGIN/_:configuration --type elem -n source -v 1.8
 cd ..
 }
 
+# Prevent error: "gpg: signing failed: Inappropriate ioctl for device"
+export GPG_TTY=$(tty)
 
 
 # we do a normal release at the last bump commit
@@ -61,7 +63,7 @@ CURRENT_VERSION=`xmlstarlet sel -t -v '/_:project/_:version' pom.xml`
 CURRENT_VERSION_NO_SNAPSHOT=`echo $CURRENT_VERSION | sed -e 's/-SNAPSHOT//'`
 echo CURRENT_VERSION_NO_SNAPSHOT $CURRENT_VERSION_NO_SNAPSHOT
 xmlstarlet edit -L --update '/_:project/_:version' --value $CURRENT_VERSION_NO_SNAPSHOT pom.xml
-mvn -q clean deploy -DskipTests -Prelease -Dgpg.keyname=$KEY -DadditionalJOption=-Xdoclint:none
+mvn -q clean deploy -DskipTests -Prelease -DadditionalJOption=-Xdoclint:none
 if [ $? -eq 0 ]; then
     echo pushing tag on github
     git checkout -b $CURRENT_VERSION_NO_SNAPSHOT
