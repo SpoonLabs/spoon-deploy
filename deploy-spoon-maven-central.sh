@@ -10,7 +10,6 @@ sudo apt-get install -y xmlstarlet
 
 # Fetch SpoonBot GPG key
 gpg --batch --fast-import --passphrase="$SPOONBOT_PASSPHRASE" spoonbot.gpg
-KEY=`gpg --list-keys --with-colons | grep pub | cut -f5 -d: | tail -1`
 
 git clone https://github.com/INRIA/spoon/
 # MAVEN INIT
@@ -101,7 +100,7 @@ echo NEW_BETA_NUMBER $NEW_BETA_NUMBER
 PUSHED_VERSION=$CURRENT_VERSION_NO_SNAPSHOT-beta-$NEW_BETA_NUMBER
 echo deploying $PUSHED_VERSION
 xmlstarlet edit -L --update '/_:project/_:version' --value $PUSHED_VERSION pom.xml
-mvn -q clean deploy -DskipTests -Prelease -Dgpg.keyname=$KEY -DadditionalJOption=-Xdoclint:none
+mvn -q clean deploy -DskipTests -Prelease -DadditionalJOption=-Xdoclint:none
 
 
 
