@@ -5,10 +5,12 @@
 # Deploy a beta versions according to the Maven convention: major.minor.patch-beta-number
 #
 
-#### GPG INIT
-gpg --fast-import spoonbot.gpgkey
+# Install dependencies
+sudo apt-get install -y xmlstarlet
+
+# Fetch SpoonBot GPG key
+gpg --batch --fast-import --passphrase="$SPOONBOT_PASSPHRASE" spoonbot.gpg
 KEY=`gpg --list-keys --with-colons | grep pub | cut -f5 -d: | tail -1`
-### END GPG INIT
 
 git clone https://github.com/INRIA/spoon/
 # MAVEN INIT
