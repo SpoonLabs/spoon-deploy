@@ -9,10 +9,7 @@
 sudo apt-get install -y xmlstarlet
 
 # Fetch SpoonBot GPG key
-# made with symmetric key encryption algorithm AES256
-# reference: https://docs.github.com/en/actions/security-guides/encrypted-secrets#limits-for-secrets
-gpg --quiet --batch --yes --decrypt --passphrase="$SPOONBOT_PASSPHRASE" --output spoonbot.gpg spoonbot.gpg.enc
-gpg --fast-import spoonbot.gpg
+gpg --fast-import --passphrase="$SPOONBOT_PASSPHRASE" spoonbot.gpg
 KEY=`gpg --list-keys --with-colons | grep pub | cut -f5 -d: | tail -1`
 
 git clone https://github.com/INRIA/spoon/
