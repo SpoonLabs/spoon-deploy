@@ -75,7 +75,7 @@ NEW_BETA_NUMBER=$((LAST_BETA_NUMBER+1))
 echo NEW_BETA_NUMBER $NEW_BETA_NUMBER
 
 # we push a beta
-PUSHED_VERSION=$CURRENT_VERSION_NO_SNAPSHOT-beta-$NEW_BETA_NUMBER
+PUSHED_VERSION=$CURRENT_VERSION_NO_SNAPSHOT-beta-4
 echo deploying $PUSHED_VERSION
 xmlstarlet edit -L --update '/_:project/_:version' --value $PUSHED_VERSION pom.xml
 mvn clean deploy -DskipTests -Prelease
