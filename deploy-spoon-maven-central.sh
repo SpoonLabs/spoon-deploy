@@ -16,8 +16,6 @@ function quick_fix_pom() {
 # quickfix
 cd spoon-pom
 
-sed -i -z 's#<artifactId>nexus-staging-maven-plugin</artifactId>\n\s\s\s\s\s\s\s\s\s\s\s\s\s\s\s\s<version>1.6.10</version>#<artifactId>nexus-staging-maven-plugin</artifactId><version>1.6.8</version>#' pom.xml
-
 # not required anymore, fixed on master
 # xmlstarlet ed -L -d '/_:project/_:parent' pom.xml
 
