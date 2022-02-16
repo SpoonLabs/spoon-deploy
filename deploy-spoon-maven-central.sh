@@ -16,8 +16,6 @@ function quick_fix_pom() {
 # quickfix
 cd spoon-pom
 
-sed -i -z 's#<artifactId>nexus-staging-maven-plugin</artifactId>\n\s\s\s\s\s\s\s\s\s\s\s\s\s\s\s\s<version>1.6.10</version>#<artifactId>nexus-staging-maven-plugin</artifactId><version>1.6.8</version>#' pom.xml
-
 # not required anymore, fixed on master
 # xmlstarlet ed -L -d '/_:project/_:parent' pom.xml
 
@@ -44,7 +42,7 @@ CURRENT_VERSION=`xmlstarlet sel -t -v '/_:project/_:version' pom.xml`
 CURRENT_VERSION_NO_SNAPSHOT=`echo $CURRENT_VERSION | sed -e 's/-SNAPSHOT//'`
 echo CURRENT_VERSION_NO_SNAPSHOT $CURRENT_VERSION_NO_SNAPSHOT
 xmlstarlet edit -L --update '/_:project/_:version' --value $CURRENT_VERSION_NO_SNAPSHOT pom.xml
-mvn clean deploy -DskipTests -Prelease
+mvn -q clean deploy -DskipTests -Prelease
 if [ $? -eq 0 ]; then
     echo pushing tag on github
     git checkout -b $CURRENT_VERSION_NO_SNAPSHOT
@@ -75,7 +73,7 @@ NEW_BETA_NUMBER=$((LAST_BETA_NUMBER+1))
 echo NEW_BETA_NUMBER $NEW_BETA_NUMBER
 
 # we push a beta
-PUSHED_VERSION=$CURRENT_VERSION_NO_SNAPSHOT-beta-4
+PUSHED_VERSION=$CURRENT_VERSION_NO_SNAPSHOT-beta-$NEW_BETA_NUMBER
 echo deploying $PUSHED_VERSION
 xmlstarlet edit -L --update '/_:project/_:version' --value $PUSHED_VERSION pom.xml
-mvn clean deploy -DskipTests -Prelease
+mvn -q clean deploy -DskipTests -Prelease
