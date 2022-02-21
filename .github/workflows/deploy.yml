@@ -3,7 +3,7 @@
 name: Deploy beta version
 on:
   schedule:
-    - cron: '0 0 * * 1' # Every Monday at 0000 UTC
+    - cron: '0 0 * * 2' # Every Tuesday at 0000 UTC
 
 jobs:
   deploy:
