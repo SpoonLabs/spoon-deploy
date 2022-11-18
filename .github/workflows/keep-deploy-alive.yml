@@ -1,0 +1,21 @@
+# Pushes empty commit to keep workkflows alive
+
+name: Keep deploy workflow alive
+on:
+  schedule:
+    - cron: 0 0 1 * * # 1st of every month
+
+jobs:
+  resuscitate:
+    if: ${{ github.ref == 'refs/heads/master' }}
+    name: 'Revive deploy workflow'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: 'Create empty commit'
+        run: |
+          git config --local user.email github-actions[bot]@users.noreply.github.com
+          git config --local user.name github-actions[bot]
+          git commit --allow-empty -m "Empty commit to keep workflows alive"
+          git push origin master
